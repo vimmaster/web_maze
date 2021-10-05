@@ -1,9 +1,10 @@
 'use strict';
 
 class Node {
-    constructor() {
+    constructor(return0) {
         this.sons = [];
         this.directions = [];
+        this.return = return0;
         this.root = false;
     }
     mark_root() {
@@ -33,31 +34,30 @@ class Square {
 }
 
 function compute_square(father_node, i, j, marked_squares, m, n) {
-    let valid_directions = [0, 1, 2, 3]; // north, east, south, west
+    let valid_directions = [1, 2, -1, -2]; // north, east, south, west
     for(let i1 = 0; i1 < 4; i1++) {
         let i2 = Math.floor(Math.random() * valid_directions.length)
         let direction = valid_directions[i2];
         valid_directions.splice(i2, 1);
         let i_next = i; let j_next = j;
         switch(direction) {
-            case 0:
+            case 1:
                 i_next = i - 1;
                 break;
-            case 1:
+            case 2:
                 j_next = j + 1;
                 break;
-            case 2:
+            case -1:
                 i_next = i + 1;
                 break;
-            case 3:
+            case -2:
                 j_next = j - 1;
                 break;
         }
-        
         if(i_next >= 0 && i_next < m && j_next >= 0 && j_next < n && 
            marked_squares[i_next][j_next] === false) {
             marked_squares[i_next][j_next] = true;
-            let node = new Node();
+            let node = new Node(-1 * direction);
             father_node.sons.push(node);
             father_node.directions.push(direction);
             marked_squares = compute_square(node, i_next, j_next, 
@@ -71,47 +71,63 @@ function buildMaze(parent_node, i, j, maze) {
     if(parent_node.sons.length > 0) {
         parent_node.directions.forEach(direction => {
             switch(direction) {
-                case 0:
+                case 1:
                     maze[i][j].set_north(true);
                     break;
-                case 1:
+                case 2:
                     maze[i][j].set_east(true);
                     break;
-                case 2:
+                case -1:
                     maze[i][j].set_south(true);
                     break;
-                case 3:
+                case -2:
                     maze[i][j].set_west(true);
                     break;
             }
-        });    
+        }); 
+    }
+    if(!parent_node.root) {
+        switch(parent_node.return) {
+            case 1:
+                maze[i][j].set_north(true);
+                break;
+            case 2:
+                maze[i][j].set_east(true);
+                break;
+            case -1:
+                maze[i][j].set_south(true);
+                break;
+            case -2:
+                maze[i][j].set_west(true);
+                break;
+        }
     }
     if(parent_node.sons.length > 0) {
         let i_next, j_next;
         for(let k = 0; k < parent_node.sons.length; k++) {
             i_next = i; j_next = j;
             switch(parent_node.directions[k]) {
-                case 0:
+                case 1:
                     i_next = i - 1;
                     break;
-                case 1:
+                case 2:
                     j_next = j + 1;
                     break;
-                case 2:
+                case -1:
                     i_next = i + 1;
                     break;
-                case 3:
+                case -2:
                     j_next = j - 1;
                     break;
             }
             maze = buildMaze(parent_node.sons[k], i_next, j_next, maze);
-        }    
+        }
     }
     return maze;
 }
 
 function drawMaze() {
-    const m = 3; const n = 3;
+    const m = 10; const n = 10;
     const i_start = 0; const j_start = 0;
     let marked_squares = new Array(m);
     for(let i = 0; i < m; i++) {
@@ -120,7 +136,7 @@ function drawMaze() {
         marked_squares[i] = row;
     }
     marked_squares[i_start][j_start] = true;
-    let root = new Node();
+    let root = new Node(null);
     root.mark_root();
     marked_squares = compute_square(root, i_start, j_start, marked_squares, m, n);
     let maze = new Array(m);
@@ -137,70 +153,33 @@ function drawMaze() {
     let margin = square_size - litte_square_size;
     for(let i = 0; i < m; i++) {
         for(let j = 0; j < n; j++) {
-            let x_exterior = square_size * i; 
-            let y_exterior = square_size * j;
+            let x_exterior = square_size * j; 
+            let y_exterior = square_size * i;
             let x_interior = x_exterior + margin;
             let y_interior = y_exterior + margin;
             let square = maze[i][j];
-            if(square.north === true) {
-                context.moveTo(x_interior, y_interior);
-                context.lineTo(x_exterior + margin, y_exterior);
-                context.stroke();
-                context.moveTo(x_interior + litte_square_size, y_interior);
-                context.lineTo(x_exterior + margin + litte_square_size, 
-                    y_exterior);
+            if(square.north === false) {
+                context.moveTo(x_exterior, y_exterior);
+                context.lineTo(x_exterior + square_size, y_exterior)
+                context.stroke(); 
+            }
+            if(square.east === false) {
+                context.moveTo(x_exterior + square_size, y_exterior);
+                context.lineTo(x_exterior + square_size, 
+                    y_exterior + square_size);
                 context.stroke();
             }
-            else {
-                context.moveTo(x_interior, y_interior);
-                context.lineTo(x_interior + litte_square_size, y_interior)
+            if(square.south === false) {
+                context.moveTo(x_exterior + square_size, y_exterior + 
+                    square_size);
+                context.lineTo(x_exterior, y_exterior + square_size);
+                context.stroke(); 
+            }
+            if(square.west === false) {
+                context.moveTo(x_exterior, y_exterior + square_size);
+                context.lineTo(x_exterior, y_exterior);
                 context.stroke();  
             }
-            if(square.east === true) {
-                context.moveTo(x_interior + litte_square_size, y_interior);
-                context.lineTo(x_exterior + square_size, y_exterior + margin);
-                context.stroke();
-                context.moveTo(x_interior + litte_square_size, y_interior + 
-                    litte_square_size);
-                context.lineTo(x_exterior + square_size, y_exterior + margin 
-                    + litte_square_size);
-                context.stroke();
-            }
-            else {
-                context.moveTo(x_interior + litte_square_size, y_interior);
-                context.lineTo(x_interior + litte_square_size, 
-                    y_interior + litte_square_size);
-                context.stroke();  
-            }
-            if(square.south === true) {
-                context.moveTo(x_interior + litte_square_size, y_interior);
-                context.lineTo(x_exterior + margin + litte_square_size, y_exterior 
-                    + square_size);
-                context.stroke();
-                context.moveTo(x_interior, y_interior + litte_square_size);
-                context.lineTo(x_exterior + margin, y_exterior + square_size);
-                context.stroke();
-            }
-            else {
-                context.moveTo(x_interior + litte_square_size, y_interior + 
-                    litte_square_size);
-                context.lineTo(x_interior, y_interior + litte_square_size);
-                context.stroke();  
-            }
-            if(square.west === true) {
-                context.moveTo(x_interior, y_interior + litte_square_size);
-                context.lineTo(x_exterior, y_exterior + margin + square_size);
-                context.stroke();
-                context.moveTo(x_interior, y_interior);
-                context.lineTo(x_exterior, y_exterior + margin);
-                context.stroke();
-            }
-            else {
-                context.moveTo(x_interior, y_interior + square_size);
-                context.lineTo(x_interior, y_interior);
-                context.stroke();  
-            }
-
         }
     }
 }
