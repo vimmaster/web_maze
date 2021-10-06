@@ -57,7 +57,7 @@ function compute_square(father_node, i, j, marked_squares, m, n) {
         if(i_next >= 0 && i_next < m && j_next >= 0 && j_next < n && 
            marked_squares[i_next][j_next] === false) {
             marked_squares[i_next][j_next] = true;
-            let node = new Node(-1 * direction);
+            const node = new Node(-1 * direction);
             father_node.sons.push(node);
             father_node.directions.push(direction);
             marked_squares = compute_square(node, i_next, j_next, 
@@ -67,9 +67,9 @@ function compute_square(father_node, i, j, marked_squares, m, n) {
     return marked_squares;
 }
 
-function buildMaze(parent_node, i, j, maze) {
-    if(parent_node.sons.length > 0) {
-        parent_node.directions.forEach(direction => {
+function buildMaze(father_node, i, j, maze) {
+    if(father_node.sons.length > 0) {
+        father_node.directions.forEach(direction => {
             switch(direction) {
                 case 1:
                     maze[i][j].set_north(true);
@@ -86,8 +86,8 @@ function buildMaze(parent_node, i, j, maze) {
             }
         }); 
     }
-    if(!parent_node.root) {
-        switch(parent_node.return) {
+    if(!father_node.root) {
+        switch(father_node.return) {
             case 1:
                 maze[i][j].set_north(true);
                 break;
@@ -102,11 +102,10 @@ function buildMaze(parent_node, i, j, maze) {
                 break;
         }
     }
-    if(parent_node.sons.length > 0) {
-        let i_next, j_next;
-        for(let k = 0; k < parent_node.sons.length; k++) {
-            i_next = i; j_next = j;
-            switch(parent_node.directions[k]) {
+    if(father_node.sons.length > 0) {
+        for(let k = 0; k < father_node.sons.length; k++) {
+            let i_next = i; let j_next = j;
+            switch(father_node.directions[k]) {
                 case 1:
                     i_next = i - 1;
                     break;
@@ -120,14 +119,15 @@ function buildMaze(parent_node, i, j, maze) {
                     j_next = j - 1;
                     break;
             }
-            maze = buildMaze(parent_node.sons[k], i_next, j_next, maze);
+            maze = buildMaze(father_node.sons[k], i_next, j_next, maze);
         }
     }
     return maze;
 }
 
 function drawMaze() {
-    const m = 10; const n = 10;
+    const m = 20; const n = 20;
+    const square_size = 25;
     const i_start = 0; const j_start = 0;
     let marked_squares = new Array(m);
     for(let i = 0; i < m; i++) {
@@ -136,9 +136,10 @@ function drawMaze() {
         marked_squares[i] = row;
     }
     marked_squares[i_start][j_start] = true;
-    let root = new Node(null);
+    const root = new Node(null);
     root.mark_root();
-    marked_squares = compute_square(root, i_start, j_start, marked_squares, m, n);
+    marked_squares = compute_square(root, i_start, j_start, marked_squares,
+                                    m, n);
     let maze = new Array(m);
     for(let i = 0; i < m; i++) {
         maze[i] = new Array(n);
@@ -148,15 +149,13 @@ function drawMaze() {
     }
     maze = buildMaze(root, i_start, j_start, maze);
     const canvas = document.getElementById('maze0');
+    canvas.width = n * square_size;
+    canvas.height = m * square_size;
     const context = canvas.getContext('2d');
-    let square_size = 25; let litte_square_size = 10;
-    let margin = square_size - litte_square_size;
     for(let i = 0; i < m; i++) {
         for(let j = 0; j < n; j++) {
             let x_exterior = square_size * j; 
             let y_exterior = square_size * i;
-            let x_interior = x_exterior + margin;
-            let y_interior = y_exterior + margin;
             let square = maze[i][j];
             if(square.north === false) {
                 context.moveTo(x_exterior, y_exterior);
