@@ -16,9 +16,10 @@ class Direccion(Enum):
 
 
 class Nodo:
-    def __init__(self):
+    def __init__(self, vuelta):
         self.hijos = []
         self.direcciones = []
+        self.vuelta = vuelta
         self.raiz = False
 
     def marca_raiz(self):
@@ -57,7 +58,7 @@ def avanza_retrocede_casilla(nodo_padre, posicion):
         posicion_siguiente = i, j
         if 0 <= i < m and 0 <= j < n and casillas_marcadas[i, j] == False:
             casillas_marcadas[i, j] = True
-            nodo = Nodo()
+            nodo = Nodo(Direccion.get_inversa(direccion))
             nodo_padre.hijos.append(nodo)
             nodo_padre.direcciones.append(direccion)
             mueve(direccion)
@@ -75,7 +76,7 @@ casillas_marcadas[i, j] = True
 turtle.penup()
 turtle.setpos(50, 50)
 turtle.pendown()
-nodo_raiz = Nodo()
+nodo_raiz = Nodo(None)
 nodo_raiz.marca_raiz()
 direcciones = list(Direccion)
 avanza_retrocede_casilla(nodo_raiz, inicio)
