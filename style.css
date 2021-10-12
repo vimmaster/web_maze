@@ -10,10 +10,7 @@ h1 {
     border-style: solid;
     border-width: 2px;
     border-color: black;
-    position: absolute; /* temporal. */ 
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin:auto;
+    margin-right: auto;
+    margin-left: auto;
+    display: block;
 }

@@ -149,8 +149,6 @@ function drawMaze() {
     }
     maze = buildMaze(root, i_start, j_start, maze);
     const canvas = document.getElementById('maze0');
-    canvas.width = n * square_size;
-    canvas.height = m * square_size;
     const context = canvas.getContext('2d');
     for(let i = 0; i < m; i++) {
         for(let j = 0; j < n; j++) {
